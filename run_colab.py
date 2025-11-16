@@ -928,5 +928,9 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
     )
 
 if __name__ == "__main__":
-    # share=True để có link public từ Colab
-    demo.launch(share=True)
+    # Cho phép Gradio đọc file audio trong thư mục lưu voices/history
+    # (Trên Colab: có thể là Drive hoặc thư mục local tuỳ USE_GOOGLE_DRIVE)
+    demo.launch(
+        share=True,
+        allowed_paths=[BASE_DIR, VOICES_DIR, HISTORY_DIR],
+    )
