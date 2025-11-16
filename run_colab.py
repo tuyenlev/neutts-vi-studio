@@ -227,9 +227,18 @@ def compute_similarity(ref_path: str, demo_path: str) -> float:
 
 def encode_ref_audio_to_codes(audio_path: str) -> List[int]:
     wav, sr = load_audio_mono16k(audio_path, 16000)
-    wav_tensor = torch.from_numpy(wav).float().unsqueeze(0).unsqueeze(0).to(device)
+    # ĐỂ TENSOR TRÊN CPU, KHÔNG .to(device)
+    wav_tensor = torch.from_numpy(wav).float().unsqueeze(0).unsqueeze(0)
     with torch.no_grad():
-        ref_codes = codec.encode_code(audio_or_path=wav_tensor).squeeze(0).squeeze(0).cpu().numpy().tolist()
+        # NeuCodec sẽ tự move sang đúng device khi cần
+        ref_codes = (
+            codec.encode_code(audio_or_path=wav_tensor)
+            .squeeze(0)
+            .squeeze(0)
+            .cpu()
+            .numpy()
+            .tolist()
+        )
     return ref_codes
 
 # ========= TTS CORE =========
