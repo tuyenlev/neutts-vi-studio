@@ -4,7 +4,7 @@ torchaudio
 transformers
 neucodec
 phonemizer
-vinorm
+soe-vinorm
 librosa
 soundfile
 gradio
