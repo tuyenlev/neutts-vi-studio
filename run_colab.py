@@ -41,7 +41,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from neucodec import NeuCodec
 from phonemizer.backend import EspeakBackend
-from vinorm import TTSnorm
+from soe_vinorm import normalize_text  # thay cho vinorm
 import gradio as gr
 from resemblyzer import VoiceEncoder, preprocess_wav
 
@@ -69,7 +69,9 @@ codec.eval()
 phonemizer = EspeakBackend(language='vi', preserve_punctuation=True, with_stress=True)
 
 def vn_norm(text: str) -> str:
-    return TTSnorm(text, punc=False, unknown=True, lower=False, rule=False)
+    # dùng helper mới của soe-vinorm
+    # Mặc định: normalize số, ngày tháng, viết tắt...
+    return normalize_text(text)
 
 # ========= PRESETS =========
 PRESETS = {
