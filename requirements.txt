@@ -1,0 +1,13 @@
+torch
+torchvision
+torchaudio
+transformers
+neucodec
+phonemizer
+vinorm
+librosa
+soundfile
+gradio
+pydub
+numpy==1.26.4
+resemblyzer
