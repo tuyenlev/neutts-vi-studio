@@ -41,7 +41,6 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from neucodec import NeuCodec
 from phonemizer.backend import EspeakBackend
-from soe_vinorm import normalize_text  # thay cho vinorm
 import gradio as gr
 from resemblyzer import VoiceEncoder, preprocess_wav
 
@@ -69,9 +68,10 @@ codec.eval()
 phonemizer = EspeakBackend(language='vi', preserve_punctuation=True, with_stress=True)
 
 def vn_norm(text: str) -> str:
-    # dùng helper mới của soe-vinorm
-    # Mặc định: normalize số, ngày tháng, viết tắt...
-    return normalize_text(text)
+    text = text.strip()
+    # Gom nhiều khoảng trắng thành 1
+    text = re.sub(r"\s+", " ", text)
+    return text
 
 # ========= PRESETS =========
 PRESETS = {
@@ -611,7 +611,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
                 v.name,
             )
 
-        temp_voice_id_state, preview_audio, clone_status, similarity_text, save_voice_name = btn_gen_preview.click(
+        btn_gen_preview.click(
             fn=on_gen_preview,
             inputs=[in_audio, lang_clone, voice_name_input, preview_text_input],
             outputs=[temp_voice_id_state, preview_audio, clone_status, similarity_text, save_voice_name],
@@ -623,7 +623,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
                 return msg_or_id, refresh_voices_state()
             return f"✅ Đã lưu voice với ID `{msg_or_id}`.", refresh_voices_state()
 
-        clone_status, voices_state = btn_save_voice.click(
+        btn_save_voice.click(
             fn=on_save_voice,
             inputs=[temp_voice_id_state, save_voice_name],
             outputs=[clone_status, voices_state],
@@ -758,7 +758,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
             except Exception as e:
                 return gr.update(choices=list(PRESETS.keys()), value=preset_dropdown.value), f"❌ Lỗi khi import: {e}"
 
-        preset_dropdown, preset_status = preset_import_btn.click(
+        preset_import_btn.click(
             fn=on_import_presets,
             inputs=[preset_import_file],
             outputs=[preset_dropdown, preset_status],
@@ -781,10 +781,9 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
                 return "", "⚠️ Voice này chưa có file demo."
             return preview, "✅ Đang phát demo voice."
 
-        voice_demo_audio, tts_status = btn_play_voice_demo.click(
+        btn_play_voice_demo.click(
             fn=on_play_voice_demo,
-            inputs=[voice_dropdown],
-            outputs=[voice_demo_audio, tts_status],
+            inputs=[voice_dropdown],outputs=[voice_demo_audio, tts_status],
         )
 
         def on_tts(
@@ -824,7 +823,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
             out_path = save_history(voice, text, lang_internal, audio, modifiers)
             return out_path, "✅ Tạo audio thành công. Bạn có thể nghe và tải về."
 
-        tts_output_audio, tts_status = btn_tts.click(
+        btn_tts.click(
             fn=on_tts,
             inputs=[
                 voice_dropdown, tts_text, emotion, lang_tts,
@@ -865,7 +864,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
             msg = delete_voice(vid.strip())
             return msg, lib_load(), refresh_voices_state()
 
-        lib_status, lib_table, voices_state = btn_lib_delete.click(
+        btn_lib_delete.click(
             fn=on_lib_delete,
             inputs=[lib_selected],
             outputs=[lib_status, lib_table, voices_state],
@@ -893,7 +892,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue"), css=custom_css) as demo
             audio_path, text = get_history_audio(history_id)
             return audio_path, text
 
-        hist_audio, hist_text = history_dropdown.change(
+        history_dropdown.change(
             fn=hist_load_item,
             inputs=[history_dropdown],
             outputs=[hist_audio, hist_text],
