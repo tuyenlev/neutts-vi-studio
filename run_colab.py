@@ -260,10 +260,23 @@ def extract_speech_codes_from_output(output_text: str) -> List[int]:
     return codes
 
 def decode_codes_to_audio(codes: List[int], sr: int = 24000) -> np.ndarray:
+    """
+    Giải mã codebook -> audio bằng NeuCodec.
+    NeuCodec.decode_code() bản hiện tại không nhận sample_rate,
+    nên ta gọi không có tham số, sau đó tự resample nếu muốn 24kHz.
+    """
     codes_tensor = torch.tensor(codes, dtype=torch.long, device=device).unsqueeze(0).unsqueeze(0)
     with torch.no_grad():
-        audio = codec.decode_code(codes_tensor, sample_rate=sr)[0, 0].cpu().numpy()
-    return audio
+        # NeuCodec thường decode ở 16kHz
+        audio_16k = codec.decode_code(codes_tensor)[0, 0].cpu().numpy()
+
+    # Nếu muốn output 24kHz (hoặc sr khác), ta resample từ 16k lên sr
+    if sr != 16000:
+        audio = librosa.resample(audio_16k, orig_sr=16000, target_sr=sr)
+    else:
+        audio = audio_16k
+
+    return audio.astype(np.float32)
 
 def generate_tts_raw(
     text: str,
