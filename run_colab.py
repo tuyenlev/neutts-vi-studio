@@ -4,22 +4,17 @@ from typing import Dict, Any, List, Tuple
 
 # ========= CONFIG CHUNG =========
 # True: lưu voice & history lên Google Drive (giữ được giữa các lần reset Colab)
-# False: lưu local trong runtime Colab (reset là mất)
+# False: lưu local trong runtime (reset là mất)
 USE_GOOGLE_DRIVE = True
 
 # Phát hiện đang chạy trong Colab hay không
-try:
-    import google.colab  # type: ignore
-    IN_COLAB = True
-except ImportError:
-    IN_COLAL = False
-    IN_COLAB = False  # phòng khi typo, nhưng giữ IN_COLAB để dùng dưới
+IN_COLAB = "COLAB_GPU" in os.environ  # Colab set biến môi trường này khi có GPU
 
 BASE_DIR = ""
 
 if USE_GOOGLE_DRIVE and IN_COLAB:
-    from google.colab import drive  # type: ignore
-    drive.mount("/content/drive")
+    # Giả định bạn đã mount Google Drive trong notebook:
+    # from google.colab import drive; drive.mount('/content/drive')
     BASE_DIR = "/content/drive/MyDrive/neutts_vi_studio"
 else:
     if IN_COLAB:
